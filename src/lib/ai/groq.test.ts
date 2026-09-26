@@ -47,5 +47,12 @@ test('generate retries without an unsupported reasoning option', async () => {
 });
 
 test('generate rejects calls without an API key', async () => {
-  await assert.rejects(generate('질문', { GROQ_API_KEY: '' }), /GROQ_API_KEY is not configured/);
+  // Isolate from the host environment so a configured key never triggers a real request.
+  const previousKey = process.env.GROQ_API_KEY;
+  delete process.env.GROQ_API_KEY;
+  try {
+    await assert.rejects(generate('질문', { GROQ_API_KEY: '' }), /GROQ_API_KEY is not configured/);
+  } finally {
+    if (previousKey !== undefined) process.env.GROQ_API_KEY = previousKey;
+  }
 });

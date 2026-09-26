@@ -8,7 +8,7 @@ export const navItems: NavItem[] = [
   { href: "/admin", label: "관리자", shortLabel: "관리", description: "문서 업로드·색인 관리", icon: ShieldCheck },
 ];
 
-export const APP_VERSION = "5.0.1";
+export const APP_VERSION = "5.0.2";
 
 export function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);

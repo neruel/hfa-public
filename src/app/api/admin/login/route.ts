@@ -1,20 +1,29 @@
+import { createHash, timingSafeEqual } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createAdminSession, adminSessionCookie } from '@/lib/server/admin-session';
 
 const loginSchema = z.object({ token: z.string().min(1).max(512) });
 
+// Hash both sides first so lengths always match and timingSafeEqual never throws.
+function tokensMatch(received: string, expected: string): boolean {
+  const a = createHash('sha256').update(received).digest();
+  const b = createHash('sha256').update(expected).digest();
+  return timingSafeEqual(a, b);
+}
+
 export async function POST(request: Request) {
   try {
     const { token } = loginSchema.parse(await request.json());
     const expected = process.env.ADMIN_API_TOKEN;
 
-    if (!expected || token !== expected) {
+    if (!expected || !tokensMatch(token, expected)) {
       return NextResponse.json({ error: 'Invalid administrator credentials' }, { status: 401 });
     }
 
     const session = await createAdminSession(expected);
-    const response = NextResponse.json({ authenticated: true, session }, { status: 200 });
+    // The session is delivered only via the HttpOnly cookie, never in the response body.
+    const response = NextResponse.json({ authenticated: true }, { status: 200 });
 
     // Set secure session cookie
     response.cookies.set(adminSessionCookie, session, {

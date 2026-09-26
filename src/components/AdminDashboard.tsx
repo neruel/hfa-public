@@ -20,7 +20,6 @@ export function AdminDashboard() {
   const [percent, setPercent] = useState(0);
   const [message, setMessage] = useState<string | null>(null);
   const [authenticated, setAuthenticated] = useState(false);
-  const [session, setSession] = useState<string | null>(null);
   const [token, setToken] = useState("");
   const [loginError, setLoginError] = useState<string | null>(null);
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
@@ -29,17 +28,15 @@ export function AdminDashboard() {
   const [dragActive, setDragActive] = useState(false);
   const xhrRef = useRef<XMLHttpRequest | null>(null);
 
-  const authHeaders = useCallback((activeSession?: string | null): Record<string, string> => activeSession ? { Authorization: `Bearer session:${activeSession}` } : {}, []);
-  const refreshDocuments = useCallback(async (activeSession?: string | null) => {
-    const hasExistingAuth = authenticated || Boolean(activeSession ?? session);
+  const refreshDocuments = useCallback(async (showErrors?: boolean) => {
+    const hasExistingAuth = authenticated || Boolean(showErrors);
     setLoading(true);
     try {
-      const headers = authHeaders(activeSession ?? session);
       const [docsResponse, overviewResponse] = await Promise.all([
-        fetch("/api/admin/documents", { headers, credentials: "include" }),
-        fetch("/api/admin/overview", { headers, credentials: "include" }),
+        fetch("/api/admin/documents", { credentials: "include" }),
+        fetch("/api/admin/overview", { credentials: "include" }),
       ]);
-      if (docsResponse.status === 401) { setAuthenticated(false); setSession(null); throw new Error("관리자 세션이 만료되었습니다."); }
+      if (docsResponse.status === 401) { setAuthenticated(false); throw new Error("관리자 세션이 만료되었습니다."); }
       if (!docsResponse.ok) throw new Error("문서 목록을 불러오지 못했습니다.");
       const docs = await docsResponse.json() as { documents?: DocumentItem[] };
       setDocuments(docs.documents ?? []);
@@ -47,7 +44,7 @@ export function AdminDashboard() {
       setAuthenticated(true);
     } catch (error) { if (hasExistingAuth) setMessage(error instanceof Error ? error.message : "문서 목록 오류"); }
     finally { setLoading(false); }
-  }, [authHeaders, authenticated, session]);
+  }, [authenticated]);
 
   useEffect(() => { void refreshDocuments(); }, [refreshDocuments]);
   useEffect(() => {
@@ -61,9 +58,8 @@ export function AdminDashboard() {
     try {
       const response = await fetch("/api/admin/login", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ token }) });
       if (!response.ok) throw new Error("관리자 인증에 실패했습니다.");
-      const data = await response.json() as { session?: string };
-      setToken(""); setSession(data.session ?? null); setAuthenticated(true);
-      await refreshDocuments(data.session);
+      setToken(""); setAuthenticated(true);
+      await refreshDocuments(true);
     } catch (error) { setLoginError(error instanceof Error ? error.message : "관리자 인증에 실패했습니다."); }
   };
 
@@ -75,7 +71,6 @@ export function AdminDashboard() {
       const result = await new Promise<{ status: number; body: string }>((resolve, reject) => {
         const request = new XMLHttpRequest(); xhrRef.current = request;
         request.open("POST", "/api/admin/upload"); request.withCredentials = true;
-        const headers = authHeaders(session); if (headers.Authorization) request.setRequestHeader("Authorization", headers.Authorization);
         request.upload.onprogress = (event) => { if (event.lengthComputable) setPercent(Math.round(event.loaded / event.total * 100)); };
         request.onload = () => resolve({ status: request.status, body: request.responseText });
         request.onerror = () => reject(new Error("업로드 네트워크 오류가 발생했습니다."));
@@ -84,8 +79,8 @@ export function AdminDashboard() {
       });
       xhrRef.current = null;
       if (result.status < 200 || result.status >= 300) { let error = "업로드에 실패했습니다."; try { error = (JSON.parse(result.body) as { error?: string }).error ?? error; } catch { /* non-json */ } throw new Error(error); }
-      setPhase("refreshing"); setPercent(100); await refreshDocuments(session); setFile(null); setPhase("done"); setMessage("업로드와 문서 처리가 완료되었습니다.");
-    } catch (error) { xhrRef.current = null; setPhase("idle"); setMessage(error instanceof Error ? error.message : "업로드에 실패했습니다."); await refreshDocuments(session); }
+      setPhase("refreshing"); setPercent(100); await refreshDocuments(); setFile(null); setPhase("done"); setMessage("업로드와 문서 처리가 완료되었습니다.");
+    } catch (error) { xhrRef.current = null; setPhase("idle"); setMessage(error instanceof Error ? error.message : "업로드에 실패했습니다."); await refreshDocuments(); }
   };
   const cancelUpload = () => xhrRef.current?.abort();
   const chooseFile = (candidate: File | null) => {
@@ -100,9 +95,9 @@ export function AdminDashboard() {
   const documentAction = async (id: string, action: "reprocess" | "delete") => {
     if (action === "delete" && !window.confirm("이 문서와 색인 데이터를 삭제할까요?")) return;
     try {
-      const response = await fetch(`/api/admin/documents/${id}${action === "reprocess" ? "/reprocess" : ""}`, { method: action === "delete" ? "DELETE" : "POST", headers: authHeaders(session), credentials: "include" });
+      const response = await fetch(`/api/admin/documents/${id}${action === "reprocess" ? "/reprocess" : ""}`, { method: action === "delete" ? "DELETE" : "POST", credentials: "include" });
       if (!response.ok) { setMessage(action === "delete" ? "삭제에 실패했습니다." : "재처리에 실패했습니다."); return; }
-      await refreshDocuments(session);
+      await refreshDocuments();
     } catch { setMessage(action === "delete" ? "삭제 중 네트워크 오류가 발생했습니다." : "재처리 중 네트워크 오류가 발생했습니다."); }
   };
 
