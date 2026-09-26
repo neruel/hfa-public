@@ -1,0 +1,3 @@
+export type Source = { documentId: string; documentName: string; chunkId: string; score?: number | null; pageNumber?: number | null; sectionTitle?: string | null; excerpt?: string | null };
+export type ChatMessage = { id: string; role: "user" | "assistant"; content: string; sources?: Source[]; confidence?: "높음" | "보통" | "낮음"; answerMode?: "rag" | "general" | "external_required" };
+export type SearchResult = { id: string; documentId: string; documentName: string; chunkId: string; score: number; pageNumber?: number | null; sectionTitle?: string | null; excerpt?: string | null; category?: string | null };
