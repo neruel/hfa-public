@@ -16,9 +16,10 @@
 
 ### CI
 - GitHub Actions 워크플로를 추가했습니다(Node 20, lint → typecheck → test → build, dummy env, `contents: read`).
+- `actions/checkout`, `actions/setup-node`를 v5로 올려 Actions 런타임의 Node 20 사용 중단 경고를 없앴습니다.
 
 ### 스크린샷
-- Playwright 기반 `npm run screenshots`를 추가하고, mock fixture로 촬영한 채팅·검색·관리자·모바일·다크 테마 화면을 `docs/screenshots/`에 포함했습니다.
+- Playwright 기반 `npm run screenshots`를 추가하고, mock fixture로 촬영한 채팅·색인 검색(관리자 탭)·관리자·모바일·다크 테마 화면을 `docs/screenshots/`에 포함했습니다.
 
 ### 문서
-- README에 CI 배지, 버전, 스크린샷 표, 검증 방식 섹션을 추가했습니다.
+- README에 CI 배지, 버전, 스크린샷 표, 검증 방식 섹션을 추가하고 `/search` 경로 설명을 실제 메뉴 구성에 맞췄습니다.

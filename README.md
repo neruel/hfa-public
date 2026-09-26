@@ -4,9 +4,9 @@
 
 주택 관리 문서를 업로드하고, 문서 내용을 바탕으로 질문에 답하는 RAG 데모입니다.
 
-| 채팅 | 문서 검색 |
+| 채팅 | 색인 검색 (관리자) |
 | --- | --- |
-| ![채팅](docs/screenshots/chat.png) | ![문서 검색](docs/screenshots/search.png) |
+| ![채팅](docs/screenshots/chat.png) | ![색인 검색](docs/screenshots/search.png) |
 | **관리자** | **다크 테마** |
 | ![관리자](docs/screenshots/admin.png) | ![다크 테마](docs/screenshots/dark.png) |
 
@@ -91,7 +91,7 @@ npm run dev
 ## 주요 경로
 
 - `/chat` — 문서 기반 채팅
-- `/search` — 문서 검색
+- `/search` — 문서 검색 단독 페이지 (사이드바 메뉴에는 없음, 관리자 > 색인 검색 탭과 같은 기능)
 - `/call` — 공개 데모 연락처 안내
 - `/admin` — 관리자 로그인 및 문서 관리
 - `/api/health` — 상태 확인

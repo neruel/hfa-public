@@ -94,7 +94,9 @@ async function main() {
 
     await shootChat(page, 'chat.png');
 
-    await page.goto(`${BASE}/search`);
+    // Search is reached from the admin "색인 검색" tab, not a sidebar menu.
+    await page.goto(`${BASE}/admin`);
+    await page.getByRole('tab', { name: '색인 검색' }).click();
     await page.getByLabel('검색어').fill('주차 등록');
     await page.getByLabel('검색어').press('Enter');
     await page.getByText('검색 결과 3건').waitFor();
