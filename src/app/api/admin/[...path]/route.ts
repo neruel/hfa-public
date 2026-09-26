@@ -153,7 +153,23 @@ async function handler(request: Request, context: Context) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
     await processDocumentIngestion(docId);
-    return NextResponse.json({ documentId: docId, reprocessed: true });
+    const { data: processedDocument, error: statusErr } = await supabaseAdmin
+      .from('documents')
+      .select('status, error_message')
+      .eq('id', docId)
+      .single();
+
+    if (statusErr || !processedDocument) {
+      return NextResponse.json({ error: 'Could not verify document processing status' }, { status: 500 });
+    }
+    if (processedDocument.status !== 'READY') {
+      return NextResponse.json({
+        error: processedDocument.error_message ?? 'Document processing failed',
+        documentId: docId,
+        status: processedDocument.status,
+      }, { status: 422 });
+    }
+    return NextResponse.json({ documentId: docId, status: 'READY', reprocessed: true });
   }
 
   // DELETE /admin/documents/:id – delete document and chunks
@@ -175,12 +191,15 @@ async function handler(request: Request, context: Context) {
     if (delErr) console.warn('Chunk deletion warning:', delErr.message);
 
     // Delete document row
-    await supabaseAdmin.from('documents').delete().eq('id', docId);
+    const { error: deleteErr } = await supabaseAdmin.from('documents').delete().eq('id', docId);
+    if (deleteErr) return NextResponse.json({ error: deleteErr.message }, { status: 500 });
 
-    // Remove file from Supabase Storage
-    try {
-      await supabaseAdmin.storage.from('documents').remove([doc.storage_path]);
-    } catch {}
+    // Remove the file from Supabase Storage after the database row is deleted.
+    const { error: storageErr } = await supabaseAdmin.storage.from('documents').remove([doc.storage_path]);
+    if (storageErr) {
+      console.error('Storage cleanup failed after document deletion:', storageErr.message);
+      return NextResponse.json({ error: 'Document record was deleted but its stored file could not be removed' }, { status: 500 });
+    }
 
     return NextResponse.json({ deleted: true });
   }

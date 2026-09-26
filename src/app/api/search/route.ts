@@ -7,10 +7,14 @@ import { filterByRelevance, similarityThreshold } from '@/lib/retrieval';
 const querySchema = z.object({ q: z.string().min(2).max(2000) });
 
 export async function GET(request: Request) {
+  const url = new URL(request.url);
+  const parsed = querySchema.safeParse({ q: url.searchParams.get('q') ?? '' });
+  if (!parsed.success) {
+    return NextResponse.json({ error: '검색어는 2자 이상 2000자 이하여야 합니다.' }, { status: 400 });
+  }
+
   try {
-    const url = new URL(request.url);
-    const payload = querySchema.parse({ q: url.searchParams.get('q') ?? '' });
-    const queryVec = await embedQuery(payload.q);
+    const queryVec = await embedQuery(parsed.data.q);
 
     const { data: matches, error } = await supabaseAdmin.rpc('vector_search', {
       query_vec: queryVec,
@@ -19,7 +23,10 @@ export async function GET(request: Request) {
       category_id: null,
     });
 
-    if (error) throw new Error(`검색 중 오류가 발생했습니다: ${error.message}`);
+    if (error) {
+      console.error('Vector search unavailable:', error.message);
+      return NextResponse.json({ error: '검색 서비스를 사용할 수 없습니다.' }, { status: 503 });
+    }
 
     const results = filterByRelevance<any>(matches ?? []).map((m: any) => ({
       id: m.id,
@@ -34,7 +41,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ results });
   } catch (e) {
-    const msg = e instanceof Error ? e.message : 'Invalid request';
-    return NextResponse.json({ error: msg }, { status: 400 });
+    console.error('Search request failed:', e instanceof Error ? e.message : e);
+    return NextResponse.json({ error: '검색 서비스를 사용할 수 없습니다.' }, { status: 503 });
   }
 }
