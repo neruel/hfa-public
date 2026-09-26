@@ -8,7 +8,12 @@ export const navItems: NavItem[] = [
   { href: "/admin", label: "관리자", shortLabel: "관리", description: "문서 업로드·색인 관리", icon: ShieldCheck },
 ];
 
-export const APP_VERSION = "5.0.2";
+// Pages reachable by URL but not shown in the sidebar; used only for the header title.
+export const hiddenPages: Pick<NavItem, "href" | "label" | "description">[] = [
+  { href: "/search", label: "문서 검색", description: "관리규정·안내문 의미 기반 검색" },
+];
+
+export const APP_VERSION = "5.0.3";
 
 export function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);

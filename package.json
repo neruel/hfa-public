@@ -1,10 +1,10 @@
 {
   "name": "housing-faq-assistant",
-  "version": "5.0.2",
+  "version": "5.0.3",
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=20.9.0"
+    "node": ">=22"
   },
   "scripts": {
     "dev": "next dev",

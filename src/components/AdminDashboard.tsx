@@ -5,6 +5,7 @@ import { CheckCircle, CloudUpload, FileText, Loader2, Lock, RefreshCw, RotateCcw
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
 import { SearchBar } from "./SearchBar";
+import { formatFileType } from "@/lib/file-type";
 
 type UploadPhase = "idle" | "uploading" | "refreshing" | "done";
 type DocumentItem = { id: string; filename: string; file_type: string | null; status: string; ocr_used: number | boolean; chunk_count: number; created_at: string; updated_at: string; error_message: string | null };
@@ -249,7 +250,7 @@ export function AdminDashboard() {
                             <div className="min-w-0">
                               <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">{document.filename}</p>
                               <p className="mt-1 flex flex-wrap gap-x-2.5 gap-y-0.5 text-xs text-zinc-500 dark:text-zinc-400">
-                                <span>{document.file_type ?? "-"}</span>
+                                <span>{formatFileType(document.file_type, document.filename)}</span>
                                 <span>청크 {document.chunk_count ?? 0}</span>
                                 <span>OCR {document.ocr_used ? "사용" : "미사용"}</span>
                               </p>

@@ -1,6 +1,6 @@
 # Housing FAQ Assistant
 
-[![CI](https://github.com/neruel/hfa-public/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/neruel/hfa-public/actions/workflows/ci.yml) ![version](https://img.shields.io/badge/version-v5.0.2-blue)
+[![CI](https://github.com/neruel/hfa-public/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/neruel/hfa-public/actions/workflows/ci.yml) ![version](https://img.shields.io/badge/version-v5.0.3-blue)
 
 주택 관리 문서를 업로드하고, 문서 내용을 바탕으로 질문에 답하는 RAG 데모입니다.
 
@@ -47,7 +47,7 @@
 
 ## 시작하기
 
-Node.js 20.9 이상이 필요합니다.
+Node.js 22 이상이 필요합니다.
 
 ```powershell
 npm install
@@ -119,9 +119,13 @@ npm run screenshots   # Playwright로 docs/screenshots/ 재생성 (최초 1회 n
 
 이 저장소는 소스 공개용 포트폴리오이며 **라이브 데모는 운영하지 않습니다.** 모든 검증은 외부 API 키 없이 수행합니다.
 
-- **CI:** GitHub Actions(`.github/workflows/ci.yml`)가 push·PR마다 Node 20에서 `lint → typecheck → test → build`를 실행합니다. build에는 `NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321`과 dummy 키만 주입합니다.
+- **CI:** GitHub Actions(`.github/workflows/ci.yml`)가 push·PR마다 Node 22에서 `lint → typecheck → test → build`를 실행합니다. build에는 `NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321`과 dummy 키만 주입합니다.
 - **테스트:** `npm test`는 `src/**/*.test.ts`를 tsx로 실행하는 Node 테스트 러너입니다. 라우팅, 문서 파싱, 검색 필터, 관리자 세션 서명·위조 거부를 검증합니다.
 - **인증 흐름:** dummy env로 서버를 띄워 잘못된 토큰 401, 올바른 토큰 200과 HttpOnly 세션 쿠키(응답 본문에는 세션 없음), 쿠키 없는 관리자 API 401, 쿠키가 있는 요청의 인증 통과를 확인했습니다.
 - **스크린샷:** `npm run screenshots`는 Playwright `page.route`로 `/api/chat`, `/api/search`, `/api/admin/*` 응답을 가상 주거 FAQ fixture로 대체한 mock 화면입니다. 화면의 문서명과 답변은 실제 데이터가 아닙니다.
 
 실제로 문서를 색인하고 답변을 생성하려면 Supabase 프로젝트와 Groq API 키가 필요합니다(스캔 PDF OCR은 Gemini API 키 추가).
+
+## 라이선스
+
+[MIT](LICENSE) © 2026 Neruel

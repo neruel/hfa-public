@@ -3,11 +3,11 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Moon, Sun } from "lucide-react";
 import { Brand } from "./Brand";
-import { isActive, navItems } from "./navigation";
+import { hiddenPages, isActive, navItems } from "./navigation";
 
 export default function Header() {
   const pathname = usePathname();
-  const current = navItems.find((item) => isActive(pathname, item.href));
+  const current = [...navItems, ...hiddenPages].find((item) => isActive(pathname, item.href));
   const [dark, setDark] = useState<boolean | null>(null);
 
   // The initial class is set by the inline script in the root layout.
